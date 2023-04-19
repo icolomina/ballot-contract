@@ -55,19 +55,24 @@ fn voter_is_delegated(env: &Env, voter: &Symbol) -> bool {
     dvts.contains(voter)
 }
 
-fn count_delegated_votes(env: &Env, voter: &Symbol) -> u32 {
-    let v_dvts: Vec<Symbol> = env
+fn count_delegated_votes(env: &Env, d_voter_ckey: DCounter) -> u32 {
+    let v_dvts: u32 = env
         .storage()
-        .get(voter)
-        .unwrap_or(Ok(Vec::new(env)))
+        .get(&d_voter_ckey)
+        .unwrap_or(Ok(0))
         .unwrap()
     ;
 
-    v_dvts.len()
+    v_dvts
 }
 
 #[contracttype]
 pub enum VCounter {
+    Counter(Symbol)
+}
+
+#[contracttype]
+pub enum DCounter {
     Counter(Symbol)
 }
 
@@ -90,7 +95,8 @@ impl Ballot {
 
         let mut votes: Vec<Symbol> = get_votes(&env);
         let pckey = VCounter::Counter(party);
-        let count = 1 + count_delegated_votes(&env, &voter) + env.storage().get(&pckey).unwrap_or(Ok(0)).unwrap();
+        let dvot_del_counter = DCounter::Counter(voter.clone());
+        let count = 1 + count_delegated_votes(&env, dvot_del_counter) + env.storage().get(&pckey).unwrap_or(Ok(0)).unwrap();
         votes.push_back(voter);
  
         env.storage().set(&pckey, &count);
@@ -105,8 +111,15 @@ impl Ballot {
 
         }
 
-        let mut d_votes = env.storage().get(&d_voter).unwrap_or(Ok(Vec::new(&env))).unwrap();
-        d_votes.push_back(o_voter);
+        let dvot_del_counter = DCounter::Counter(d_voter);
+        let mut d_votes = env.storage().get(&DVOTES).unwrap_or(Ok(Vec::new(&env))).unwrap();
+        let mut d_vot_delegs: u32 = env.storage().get(&dvot_del_counter).unwrap_or(Ok(0)).unwrap();
+        d_votes.push_back(o_voter.clone());
+        
+        d_vot_delegs += 1;
+
+        env.storage().set(&DVOTES, &d_votes);
+        env.storage().set(&dvot_del_counter, &d_vot_delegs);
 
         true
 
