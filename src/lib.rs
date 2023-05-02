@@ -165,3 +165,5 @@ impl Ballot {
         count_map
     }
 }
+
+mod test;
