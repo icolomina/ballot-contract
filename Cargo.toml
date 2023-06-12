@@ -10,7 +10,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 soroban-sdk = "0.8.4"
-chrono = "0.4.26"
 
 [dev_dependencies]
 soroban-sdk = { version = "0.8.4", features = ["testutils"] }

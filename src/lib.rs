@@ -3,7 +3,6 @@
 use soroban_sdk::{contractimpl, contracterror, panic_with_error, Env, Symbol, Map, Address, Vec};
 
 mod storage;
-mod validation;
 use storage::VCounter;
 
 struct Voter<'a> {
@@ -54,30 +53,8 @@ pub struct Ballot;
 #[contractimpl]
 impl Ballot {
 
-    pub fn configure(env: Env, admin: Address, from: i64, to: i64) -> bool {
-
-        admin.require_auth();
-        if let Some(cfg) = storage::get_config(&env) {
-            if validation::has_ballot_started(&cfg.from) {
-                panic_with_error!(&env, Error::SetConfigurationOutOfTime);
-            }
-        }
-
-        storage::update_config(&env, from, to);
-        true
-    }
-
     pub fn vote(env: Env, admin: Address, voter: Symbol, candidate: Symbol) -> bool {
         admin.require_auth();
-
-        if let Some(cfg) = storage::get_config(&env) {
-            if !validation::has_ballot_in_progress(&cfg.from, &cfg.to) {
-                panic_with_error!(&env, Error::TryingToVoteOutOfBallotTime);
-            }
-        }
-        else {
-            panic_with_error!(&env, Error::BallotNotConfigured);
-        }
 
         let v: Voter = Voter { id: &voter };
 
@@ -104,16 +81,6 @@ impl Ballot {
 
     pub fn delegate(env: Env,  admin: Address, o_voter: Symbol, d_voter: Symbol) -> bool {
         admin.require_auth();
-
-        if let Some(cfg) = storage::get_config(&env) {
-            if !validation::has_ballot_in_progress(&cfg.from, &cfg.to) {
-                panic_with_error!(&env, Error::TryingToDelegateVoteOutOfBallotTime);
-            }
-        }
-        else {
-            panic_with_error!(&env, Error::BallotNotConfigured);
-
-        }
 
         let ov: Voter = Voter { id: &o_voter };
         let dv: Voter = Voter { id: &d_voter };

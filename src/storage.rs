@@ -3,7 +3,6 @@ use soroban_sdk::{ Env, Symbol, Vec, contracttype};
 pub const VOTES: Symbol = Symbol::short("votes");
 pub const PARTIES: Symbol = Symbol::short("parties");
 pub const DVOTES: Symbol = Symbol::short("dvotes");
-pub const CONFIG: Symbol = Symbol::short("config");
 
 #[derive(Debug)]
 #[contracttype]
@@ -77,21 +76,6 @@ pub fn get_delegated_votes(env: &Env) -> Vec<Symbol> {
     ;
 
     dvts
-}
-
-pub fn update_config(env: &Env, from: i64, to: i64) {
-    let config: Config = Config { from, to };
-    env.storage().set(&CONFIG, &config);
-}
-
-pub fn get_config(env: &Env) -> Option<Config>{
-    let config: Option<Config> = env
-        .storage()
-        .get(&CONFIG)
-        .unwrap_or(Ok(None))
-        .unwrap();
-
-    config
 }
 
 pub fn get_candidate_votes_count(env: &Env, candidate: &VCounter) -> u32 {
