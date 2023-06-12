@@ -9,10 +9,11 @@ crate-type = ["cdylib"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-soroban-sdk = "0.7.0"
+soroban-sdk = "0.8.4"
+chrono = "0.4.26"
 
 [dev_dependencies]
-soroban-sdk = { version = "0.7.0", features = ["testutils"] }
+soroban-sdk = { version = "0.8.4", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]
