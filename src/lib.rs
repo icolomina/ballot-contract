@@ -40,11 +40,7 @@ pub enum Error {
     VoterHasAlreadyVoted = 2,
     VoterHasDelegatedVotes = 3,
     VoterOriginHasAlreadyVotedAndCannotDelegate = 4,
-    VoterTargetHasAlreadyVotedAndCannotDelegate = 5,
-    SetConfigurationOutOfTime = 6,
-    TryingToVoteOutOfBallotTime = 7,
-    TryingToDelegateVoteOutOfBallotTime = 8,
-    BallotNotConfigured = 9
+    VoterTargetHasAlreadyVotedAndCannotDelegate = 5
 
 }
 
