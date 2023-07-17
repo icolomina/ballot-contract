@@ -1,7 +1,7 @@
 #![cfg(test)]
 
 use super::{Ballot, BallotClient};
-use soroban_sdk::{Env, Symbol, testutils::Address as _, Address};
+use soroban_sdk::{Env, symbol_short, testutils::Address as _, Address};
 
 #[test]
 fn vote_test() {
@@ -9,89 +9,89 @@ fn vote_test() {
     let client = create_client(&env);
     let addr_admin = Address::random(&env);
 
-    assert_eq!(client.vote(&addr_admin, &Symbol::short("hyyt76"), &Symbol::short("Laborist")), true);
-    assert_eq!(client.vote(&addr_admin, &Symbol::short("ptft37"), &Symbol::short("Conserv")), true);
-    assert_eq!(client.vote(&addr_admin, &Symbol::short("oo9gt6"), &Symbol::short("Conserv")), true);
+    assert_eq!(client.vote(&addr_admin, &symbol_short!("hyyt76"), &symbol_short!("Laborist")), true);
+    assert_eq!(client.vote(&addr_admin, &symbol_short!("ptft37"), &symbol_short!("Conserv")), true);
+    assert_eq!(client.vote(&addr_admin, &symbol_short!("oo9gt6"), &symbol_short!("Conserv")), true);
 
     let count = client.count(&addr_admin);
 
-    assert_eq!(count.get(Symbol::short("Laborist")).unwrap(), Ok(1));
-    assert_eq!(count.get(Symbol::short("Conserv")).unwrap(), Ok(2));
+    assert_eq!(count.get(symbol_short!("Laborist")).unwrap(), 1);
+    assert_eq!(count.get(symbol_short!("Conserv")).unwrap(), 2);
 
-    client.delegate(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("oonvv5"));
-    assert_eq!(client.vote(&addr_admin, &Symbol::short("oonvv5"), &Symbol::short("Conserv")), true);
+    client.delegate(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("oonvv5"));
+    assert_eq!(client.vote(&addr_admin, &symbol_short!("oonvv5"), &symbol_short!("Conserv")), true);
 
     let count = client.count(&addr_admin);
 
-    assert_eq!(count.get(Symbol::short("Laborist")).unwrap(), Ok(1));
-    assert_eq!(count.get(Symbol::short("Conserv")).unwrap(), Ok(4));
+    assert_eq!(count.get(symbol_short!("Laborist")).unwrap(), 1);
+    assert_eq!(count.get(symbol_short!("Conserv")).unwrap(),4);
 
 }
 
 #[test]
-#[should_panic(expected = "Error(2)")]
+#[should_panic(expected = "HostError: Error(Contract, #2)")]
 fn vote_test_already_voted() {
     let env = Env::default();
     let client = create_client(&env);
     let addr_admin = Address::random(&env);
 
-    client.vote(&addr_admin, &Symbol::short("hyyt76"), &Symbol::short("Laborist"));
-    client.vote(&addr_admin, &Symbol::short("hyyt76"), &Symbol::short("Laborist"));
+    client.vote(&addr_admin, &symbol_short!("hyyt76"), &symbol_short!("Laborist"));
+    client.vote(&addr_admin, &symbol_short!("hyyt76"), &symbol_short!("Laborist"));
 }
 
 #[test]
-#[should_panic(expected = "Error(1)")]
+#[should_panic(expected = "HostError: Error(Contract, #1)")]
 fn vote_test_delegated_vote() {
     let env = Env::default();
     let client = create_client(&env);
     let addr_admin = Address::random(&env);
 
-    client.delegate(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("oonvv5"));
-    client.vote(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("Laborist"));
+    client.delegate(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("oonvv5"));
+    client.vote(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("Laborist"));
 }
 
 #[test]
-#[should_panic(expected = "Error(3)")]
+#[should_panic(expected = "HostError: Error(Contract, #3)")]
 fn delegate_test_has_delegated_votes() {
     let env = Env::default();
     let client = create_client(&env);
 
     let addr_admin = Address::random(&env);
-    client.delegate(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("oonvv5"));
-    client.delegate(&addr_admin, &Symbol::short("oonvv5"), &Symbol::short("ppky55"));
+    client.delegate(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("oonvv5"));
+    client.delegate(&addr_admin, &symbol_short!("oonvv5"), &symbol_short!("ppky55"));
 }
 
 #[test]
-#[should_panic(expected = "Error(1)")]
+#[should_panic(expected = "HostError: Error(Contract, #1)")]
 fn delegate_test_has_delegated_his_vote() {
     let env = Env::default();
     let client = create_client(&env);
 
     let addr_admin = Address::random(&env);
-    client.delegate(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("oonvv5"));
-    client.delegate(&addr_admin, &Symbol::short("hhvftp"), &Symbol::short("ippcxs"));
+    client.delegate(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("oonvv5"));
+    client.delegate(&addr_admin, &symbol_short!("hhvftp"), &symbol_short!("ippcxs"));
 }
 
 #[test]
-#[should_panic(expected = "Error(4)")]
+#[should_panic(expected = "HostError: Error(Contract, #4)")]
 fn delegate_test_o_voter_has_voted() {
     let env = Env::default();
     let client = create_client(&env);
 
     let addr_admin = Address::random(&env);
-    client.vote(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("Laborist"));
-    client.delegate(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("hhcfrp"));
+    client.vote(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("Laborist"));
+    client.delegate(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("hhcfrp"));
 }
 
 #[test]
-#[should_panic(expected = "Error(5)")]
+#[should_panic(expected = "HostError: Error(Contract, #5)")]
 fn delegate_test_d_voter_has_voted() {
     let env = Env::default();
     let client = create_client(&env);
 
     let addr_admin = Address::random(&env);
-    client.vote(&addr_admin, &Symbol::short("hhcfrp"), &Symbol::short("Laborist"));
-    client.delegate(&addr_admin, &Symbol::short("ippcxs"), &Symbol::short("hhcfrp"));
+    client.vote(&addr_admin, &symbol_short!("hhcfrp"), &symbol_short!("Laborist"));
+    client.delegate(&addr_admin, &symbol_short!("ippcxs"), &symbol_short!("hhcfrp"));
 }
 
 fn create_client(env: &Env) -> BallotClient{

@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contractimpl, contracterror, panic_with_error, Env, Symbol, Map, Address, Vec};
+use soroban_sdk::{contract, contractimpl, contracterror, Env, Symbol, Map, Address, Vec};
 
 mod storage;
 use storage::VCounter;
@@ -44,21 +44,22 @@ pub enum Error {
 
 }
 
+#[contract]
 pub struct Ballot;
 
 #[contractimpl]
 impl Ballot {
 
-    pub fn vote(env: Env, admin: Address, voter: Symbol, candidate: Symbol) -> bool {
+    pub fn vote(env: Env, admin: Address, voter: Symbol, candidate: Symbol) -> Result<bool, Error> {
         admin.require_auth();
 
         let v: Voter = Voter { id: &voter };
 
         if v.is_delegated(&env) {
-            panic_with_error!(&env, Error::VoterHasHisVoteDelegated);
+            return Err(Error::VoterHasHisVoteDelegated)
         }
         if v.has_voted(&env) {
-            panic_with_error!(&env, Error::VoterHasAlreadyVoted);
+            return Err(Error::VoterHasAlreadyVoted)
         }
         
         storage::store_party(&env, &candidate);
@@ -72,10 +73,10 @@ impl Ballot {
         storage::update_candidate_count(&env, candidate_key, count);
         storage::update_votes(&env, votes);
 
-        true
+        Ok(true)
     }
 
-    pub fn delegate(env: Env,  admin: Address, o_voter: Symbol, d_voter: Symbol) -> bool {
+    pub fn delegate(env: Env,  admin: Address, o_voter: Symbol, d_voter: Symbol) -> Result<bool, Error> {
         admin.require_auth();
 
         let ov: Voter = Voter { id: &o_voter };
@@ -83,23 +84,23 @@ impl Ballot {
     
         
         if ov.has_voted(&env) {
-            panic_with_error!(&env, Error::VoterOriginHasAlreadyVotedAndCannotDelegate);
+            return Err(Error::VoterOriginHasAlreadyVotedAndCannotDelegate)
         }
 
         if dv.has_voted(&env) {
-            panic_with_error!(&env, Error::VoterTargetHasAlreadyVotedAndCannotDelegate);
+            return Err(Error::VoterTargetHasAlreadyVotedAndCannotDelegate)
         }
 
         if ov.is_delegated(&env) {
-            panic_with_error!(&env, Error::VoterHasHisVoteDelegated);
+            return Err(Error::VoterHasHisVoteDelegated)
         }
 
         if dv.is_delegated(&env) {
-            panic_with_error!(&env, Error::VoterHasHisVoteDelegated);
+            return Err(Error::VoterHasHisVoteDelegated)
         }
 
         if ov.has_delegated_votes(&env) {
-            panic_with_error!(&env, Error::VoterHasDelegatedVotes);
+            return Err(Error::VoterHasDelegatedVotes)
         }
 
 
@@ -111,7 +112,7 @@ impl Ballot {
         storage::update_delegated_votes(&env, d_votes);
         storage::update_voter_delegated_votes(&env, d_voter, d_vot_delegs);
 
-        true
+        Ok(true)
 
     }
 
@@ -121,14 +122,9 @@ impl Ballot {
         let pts = storage::get_candidates(&env);
         let mut count_map: Map<Symbol, u32>= Map::new(&env);
         for party in pts.iter() {
-            match party {
-                Ok(p) => {
-                    let candidate_key = VCounter::Counter(p.clone());
-                    let candidate_count: u32 = storage::get_candidate_votes_count(&env, &candidate_key);
-                    count_map.set(p, candidate_count);
-                },
-                _ => ()
-            }
+            let candidate_key = VCounter::Counter(party.clone());
+            let candidate_count: u32 = storage::get_candidate_votes_count(&env, &candidate_key);
+            count_map.set(party, candidate_count);
         }
 
         count_map
