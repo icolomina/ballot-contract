@@ -29,6 +29,20 @@ fn vote_test() {
 }
 
 #[test]
+#[should_panic(expected = "HostError: Error(Contract, #6)")]
+fn vote_out_of_dates_test() {
+    let env = Env::default();
+    let client = create_client(&env);
+    let addr_admin = Address::random(&env);
+
+    let ts_start: u64 = 1689238800; // 2023-07-13 09:00:00
+    let ts_end: u64 = 1689551999; // 2023-07-16 23:59:59
+
+    client.configure(&addr_admin, &ts_start, &ts_end);
+    client.vote(&addr_admin, &symbol_short!("hyyt76"), &symbol_short!("Laborist"));
+}
+
+#[test]
 #[should_panic(expected = "HostError: Error(Contract, #2)")]
 fn vote_test_already_voted() {
     let env = Env::default();

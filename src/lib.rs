@@ -3,6 +3,7 @@
 use soroban_sdk::{contract, contractimpl, contracterror, Env, Symbol, Map, Address, Vec};
 
 mod storage;
+mod validation;
 use storage::VCounter;
 
 struct Voter<'a> {
@@ -31,6 +32,16 @@ impl<'a> Voter<'a> {
     }
 }
 
+fn check_dates(env: &Env) -> bool {
+    let cfg = storage::get_config(env);
+    let mut valid = true;
+    if cfg.from > 0 && cfg.to > 0 {
+        valid = validation::is_valid_date(&env, &cfg.from, &cfg.to)
+    }
+
+    valid
+}
+
 
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
@@ -40,7 +51,8 @@ pub enum Error {
     VoterHasAlreadyVoted = 2,
     VoterHasDelegatedVotes = 3,
     VoterOriginHasAlreadyVotedAndCannotDelegate = 4,
-    VoterTargetHasAlreadyVotedAndCannotDelegate = 5
+    VoterTargetHasAlreadyVotedAndCannotDelegate = 5,
+    BallotOutOfDate = 6
 
 }
 
@@ -50,8 +62,18 @@ pub struct Ballot;
 #[contractimpl]
 impl Ballot {
 
+    pub fn configure(env: Env, admin: Address, ts_start: u64, ts_end: u64) -> Result<bool, Error> {
+        admin.require_auth();
+        storage::store_config(&env, ts_start, ts_end);
+        Ok(true)
+    }
+
     pub fn vote(env: Env, admin: Address, voter: Symbol, candidate: Symbol) -> Result<bool, Error> {
         admin.require_auth();
+        
+        if !check_dates(&env) {
+            return Err(Error::BallotOutOfDate);
+        }
 
         let v: Voter = Voter { id: &voter };
 
@@ -78,6 +100,10 @@ impl Ballot {
 
     pub fn delegate(env: Env,  admin: Address, o_voter: Symbol, d_voter: Symbol) -> Result<bool, Error> {
         admin.require_auth();
+
+        if !check_dates(&env) {
+            return Err(Error::BallotOutOfDate);
+        }
 
         let ov: Voter = Voter { id: &o_voter };
         let dv: Voter = Voter { id: &d_voter };

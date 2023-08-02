@@ -3,19 +3,19 @@ use soroban_sdk::{ Env, Symbol, Vec, symbol_short, contracttype};
 pub const VOTES: Symbol = symbol_short!("votes");
 pub const PARTIES: Symbol = symbol_short!("parties");
 pub const DVOTES: Symbol = symbol_short!("dvotes");
+pub const CONFIG: Symbol = symbol_short!("config");
 
 #[derive(Debug)]
 #[contracttype]
 pub struct Config {
-    pub from: i64,
-    pub to: i64
+    pub from: u64,
+    pub to: u64
 }
 
-#[derive(Debug)]
-#[contracttype]
-pub enum ConfigTypes {
-    Str(Symbol),
-    Int(u32)
+impl Default for Config {
+    fn default () -> Config {
+        Config { from: 0, to: 0 }
+    }
 }
 
 #[contracttype]
@@ -97,4 +97,24 @@ pub fn update_delegated_votes(env: &Env, d_votes: Vec<Symbol>) {
 
 pub fn update_voter_delegated_votes(env: &Env, d_voter: Symbol, d_vot_delegs: Vec<Symbol>) {
     env.storage().instance().set(&d_voter, &d_vot_delegs);
+}
+
+pub fn store_config(env: &Env, ts_start: u64, ts_end: u64) {
+    let cfg = Config {
+        from: ts_start,
+        to: ts_end
+    };
+
+    env.storage().instance().set(&CONFIG, &cfg);
+}
+
+pub fn get_config(env: &Env) -> Config {
+    let cfg = env
+        .storage()
+        .instance()
+        .get(&CONFIG)
+        .unwrap_or(Config::default()
+    );
+
+    cfg
 }
