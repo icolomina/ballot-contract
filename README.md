@@ -47,6 +47,7 @@ soroban contract deploy --wasm target/wasm32-unknown-unknown/release/<your_wams_
 ## Contract functions
 
 **configure**: This function receives the contract admin (should be the same address which deployed the contract) and the ballot start and end timestamps. The, it stores the those timestamps using the *Config* struct so they can be checked later.
+
 **vote**: This function receives the contract admin, the voter and the candidate. Both voter and candidate are received as a symbols so the contract invoker should be in charge of managing the voters identities in its side. The *vote* function has some rules:
    * You cannot not vote when the current timestamp is out of range (the range between *ts_start* and *ts_end* configured by which *configure* function).
    * You cannot vote if you have delegated your vote in another voter
