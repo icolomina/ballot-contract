@@ -1,3 +1,6 @@
+# Deprecated
+This repository has been deprecated. New repository is: https://github.com/icolomina/soroban-contracts
+
 # Ballot Soroban contract
 This repository contains a [soroban](https://soroban.stellar.org/) contract which allows users to participate in a ballot process.
 
